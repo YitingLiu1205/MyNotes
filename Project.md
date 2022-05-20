@@ -123,11 +123,19 @@
 ## Serializer Improvement
 
 ### Problems
-- Problem 1: AD Server使用Serializer结果时，会出现Java GC导致的扩容问题
-  - How it happened?
-    - 
 
-### Performance
-可能可以改进的方面：
+
+### 代码中主要更改的地方
+- `DataSystem`
+
+### 代码中考虑更改的地方
+- @Data
+
+### 应考虑的Topic
+- Java如何快速阅读大文件
+- Java中的Concurrency中HashMap等的性能
+
+
+### 项目中可以改进的点
 - 
 
