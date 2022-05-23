@@ -12,6 +12,7 @@
 - `@PostConstruct`
   - 当依赖注入完成后用于执行初始化的方法，并且只会被执行一次
   - `Constructor(构造方法) -> @Autowired(依赖注入) -> @PostConstruct(注释的初始化方法)`
+
 ## Spring 装饰器
 - `@Component`
 
@@ -32,7 +33,16 @@
   - `Autowire` = 自动装配
   - 将 Spring 容器中的 bean 自动的和我们需要这个 bean 的类组装在一起。
 
+## Lombok
+- `@Synchronized`
+  - [Lombok之@Synchronized使用](https://blog.csdn.net/cauchy6317/article/details/102812229)
+  - 是一种同步锁，主要用来保证在同一个时刻，只有一个线程可以执行某个方法或者某段代码块
+
 ## Others
 
 - `@interface`
     - `@interface` 不是`interface`，是注解类, 用于定义一个可用的注解
+- `Stream.of`
+  - 用于为给定元素创建顺序流
+  - `Stream.of创建`有限元流。为了创建一个无限元素流，我们可以使用`Stream.generate`方法。
+  - **数据流**：是指一组有顺序的、有起点和终端的字节集合，是对输入/输出的总称

@@ -21,19 +21,28 @@
 
 ## Daily Log
 
-### Day 1
+### Day 1 - WK1
 - 申请账号
 - 听mentor讲解项目结构
 
-### Day 2
+### Day 2 - WK1
 - 修复账号问题
 - 自己整理mentor昨天讲的内容
 
-### Day 3
+### Day 3 - WK1
 - 配置环境
 - 继续理解项目 & 看项目源码
 
-### Day 4
+### Day 4 - WK1
 - 看项目代码
 - 学JAVA
+
+### Day 5 - WK1
+- 看项目代码
+- 写简单的rebuild入口函数
+  - 尝试把rebuild入口函数达成jar包
+  - 解决creativeSystem.ser反序列化失败问题
+
+### Day 6 - WK2
+- 根据rebuild suggestion查阅资料，思考可行的解决方式
 
