@@ -27,49 +27,44 @@
   - How to improve?
     - Method 1: 由按文件读，改为按行读
 
-## Rebuild
-
-- 入手点：`writeObject(object, filename, useGzip)`
-
-## Rebuild Topics
+## Rebuild 调研 
 
 ### 单文件如果保存多个数据结构，如何区分数据，是否应该保存为单文件？
 - Q1: 单文件如果保存多个数据结构，如何区分数据？  
   需要的数据结构有  
-  - String
+  - `int`
+  - `String`
   - Map
+    - `Map<Integer, Integer>`
+    - `Map<Integer, Content>`
+    - `Map<Integer, Set<Creative>>`
+    - `Map<Integer, Set<Integer>>`
+    - `Map<Integer, Map<Integer, Double>>`
+    - `Map<Integer, Map<Long, Double>>`
+    - `Map<Long, KeywordTarget>`
+    - `Map<Long, List<KeywordTarget>>`
+    - `Map<Integer, List<PlacementSlot>>`
+    - `Map<Integer, Placement>`
+    - `Map<Integer, Map<Integer, Double>>`
+    - `Map<Integer, List<Integer>>`
+    - `Map<Integer, Map<Integer, List<Integer>>>`
+    - `Map<Integer, Map<String, Product>>`
+    - `Map<Integer, Slot>`
+    - `Map<Integer, TargetDimension>`
+    - `Map<TargetDimension, Map<String, TargetValue>>`
+    - `Map<Integer, TargetValue>`
+    - `Map<Integer, Set<TargetValue>>`
+    - `Map<Integer, Template>`
   - Set
+    - `Set<Integer>`
   - List
-    - List of constants
-    - List of maps
+    - `List<Integer>`
   
-- Q2: 是否应该保存为单文件?
-
-- Idea 1: 按照数据结构类型序列化数据
-  - 每个k-v data 对应一个 Object
-    - `Object(String key, Value value)`
-    - `Value` => object / string / list / set
-  - 1.1: 按数据结构组织文件
-    - Adv
-      - deserializing时较容易判断数据类型
-    - Disadv
-      - 可能会造成文件大小不均 => 对文件传输有影响(?但不大)
-  - 1.2: 仍按照数据来源组织文件
-    - Adv
-      - 容易获得文件来源
-    - Disadv
-      - 难以区分数据类型
-      - or, 使用json?
-- Idea 2: 使用`Externalizable`
-  
-  
-
-
 ### 文件中单行数据怎么序列化比较好？是否使用java serialization技术序列化单个对象？
 
-- IDEA 1: 使用`serialization`
+- Idea 1: 使用`serialization` + DataObject
   - 同上，需要在序列化前处理数据
-- IDEA 2: 使用`Externalizable`
+- Idea 2: 使用`Externalizable` + 原本的大object
   - [参考文章1：序列化](https://juejin.cn/post/6844904168985985032)
   - 大致用法：自定义`writeExternal` && `readExternal`, 使每次只序列化一个data
   - Adv
@@ -78,6 +73,8 @@
     - 需要事先知道有哪些key，及value的类型
 
 ### 文件读取速度问题 (快速读取大文件)
+- 现状：一个file一个大obj
+- 改为：一个file多个小Obj, `FileInputStream` + ? + `ObjectInputStream`
 
 #### [Tuning Java I/O Performance](https://www.oracle.com/technical-resources/articles/javase/perftuning.html)
 - `FileInputStream`
@@ -222,5 +219,104 @@
 
 ### 验证方案可行性以及测试
 
-### Others
-- 传输整个文件的时候，为什么不直接用json传输？
+## Rebuild Method
+
+### Data <=> File
+Data组织图（以部分CreativeSystem为例）:
+![dataStructure](UMLs/dataStructure.png)
+
+按照不同的序列化方式，可能会生成以下不同种类的文件  
+
+- `ser`
+  - 方式：把每个data生成一个object, 把所有的object放入一个ser文件
+    - write 
+      - 把object放入，`List<object>`, 再统一写入file
+        ```Java
+        WriteObject wObj1 = new WriteObject("AAA");
+        WriteObject wObj2 = new WriteObject("BBB");
+        ArrayList<WriteObject> wObjList = new ArrayList<>();
+        wObjList.add(wObj1);
+        wObjList.add(wObj2);
+
+        FileOutputStream f = new FileOutputStream("PATH");
+        ObjectOutputStream oo = new ObjectOutputStream(f);
+        oo.writeObject(wObjList);
+        ```
+      - Do serializing in recursion: **手动dfs**
+        - 在序列化时，使用`IdentityHashMap`: 只要ID一样，就只能放入map一次 => 避免循环引用导致的多次序列化
+          - 每个system.class维护一个IdentityHashMap, 用于记录该System下的data. How?
+            - 在每个System file新implement一个visitor interface, visitor interface包括
+              - `loadProperty()` => 把`DataTitle`和序列化之后的Obj放入HashMap
+              - `extractProperty()` => 用于反序列化
+            - Adv
+              - 序列化时可以避免循环引用问题
+              - map的方式使用方便，且容易理解
+            - Disadv
+              - Map的存放需要消耗一定的内存
+              - 每个system类都需要单独实现自己的方法 => **或者直接在datasystem中实现这两个方法，用反射 + `getClass().getDeclaredFields()`建立hashmap?**
+        
+        - 对于有引用其他class的set, list, map等，在进入引用的类之前，先创建`DescObject(length, className)`，并进行序列化 => Best?
+          - 如CreativeSystem中的creativesByCampaign
+            ```Java
+            CreativeSystem system = getCreativeSystem();
+            Field[] fields = system.getClass().getDeclaredFields();
+            for (Field f : fields) {
+              // 其他属性
+              if (f.getName() == "creativesByCampaign") {
+                Object descObj = new DescObject(len(f), f.getClass());
+                // do serialize for each item in map
+                // How? (不确定)
+                //  - 把每个item的key & value包装成一个新serializable object
+                //  - 每个item之前都用一个descObj记录key和value的type
+              }
+            }
+            ```
+
+
+        - 每个serializable的class，在序列化的时候都带上className, 便于反序列化使用reflect的时候查找组装class
+          - Adv: 序列化的时候比较简单
+          - Disadv: class名会占额外的空间
+            - forName里的className一般是`com.promoteiq.delivery.system.CreativeSystem` = 50 char = 100 byte 
+            - 只CreativeSystem class 不包括引用 = 10 data
+            - 10 * 100 byte = ~1KB
+
+    - read
+      - Use `readObject()` in loop
+        ```Java
+        f = new FileInputStream("FilePath");
+        in = new ObjectInputStream(f);
+
+        Object currObj = null;
+        while ((currObj = in.readObject()) != nulll) { 
+          // Do sth on currObj
+          currObj = in.readObject();
+        }
+        ```
+      - 使数据和结构对应（具体方法取决于序列化的方法）
+        - 使用reflect获取对应的类
+        - 使用map
+
+  - 参考资料
+    - [How do I write multiple objects to the serializable file and read them when the program is used again?](https://stackoverflow.com/questions/30013292/how-do-i-write-multiple-objects-to-the-serializable-file-and-read-them-when-the)
+    - [How to recursively serialize an object using reflection?](https://stackoverflow.com/questions/2623091/how-to-recursively-serialize-an-object-using-reflection)
+- `Json`
+  - 方式：整个system就是一个list of object，一行一个object
+  - write & read方法同上
+  - Adv
+    - 明文
+    - （其他方面和ser差不多）
+  - Disadv
+    - 明文，可能会被篡改? (.ser似乎也是？需要进行校验)
+    - 不保留原数据格式，如long, int不分
+
+- `Protobuf`
+  - 
+- 不合适：
+  - `Sqlite`: Data没有固定结构，不适合用表来存储，但如果不考虑一个表只有一行数据，且一个system按data的个数分表的影响，sqlite应该还是比较合适的
+  - `csv`: data没有统一结构
+  - `XML`: 文件大小、可读性不如Json
+
+
+### Old data vs. New data
+- 按数据类型分别处理
+
