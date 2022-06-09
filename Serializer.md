@@ -226,6 +226,9 @@ Data组织图（以部分CreativeSystem为例）:
 ![dataStructure](UMLs/dataStructure.png)
 
 按照不同的序列化方式，可能会生成以下不同种类的文件  
+| Method | Adv | Disadv | Recommend? |
+| ------ | --- | ------ | ---------- |
+| ser | Adv | Disadv | Recommend? |
 
 - `ser`
   - 方式：把每个data生成一个object, 把所有的object放入一个ser文件
@@ -242,20 +245,8 @@ Data组织图（以部分CreativeSystem为例）:
         ObjectOutputStream oo = new ObjectOutputStream(f);
         oo.writeObject(wObjList);
         ```
-      - Do serializing in recursion: **手动dfs**
-        - 在序列化时，使用`IdentityHashMap`: 只要ID一样，就只能放入map一次 => 避免循环引用导致的多次序列化
-          - 每个system.class维护一个IdentityHashMap, 用于记录该System下的data. How?
-            - 在每个System file新implement一个visitor interface, visitor interface包括
-              - `loadProperty()` => 把`DataTitle`和序列化之后的Obj放入HashMap
-              - `extractProperty()` => 用于反序列化
-            - Adv
-              - 序列化时可以避免循环引用问题
-              - map的方式使用方便，且容易理解
-            - Disadv
-              - Map的存放需要消耗一定的内存
-              - 每个system类都需要单独实现自己的方法 => **或者直接在datasystem中实现这两个方法，用反射 + `getClass().getDeclaredFields()`建立hashmap?**
-        
-        - 对于有引用其他class的set, list, map等，在进入引用的类之前，先创建`DescObject(length, className)`，并进行序列化 => Best?
+      - Do serializing in recursion:        
+        - 对于system中的每个data, 先创建`DescObject(length, type)`，再进行序列化 => 只考虑两层引用
           - 如CreativeSystem中的creativesByCampaign
             ```Java
             CreativeSystem system = getCreativeSystem();
@@ -271,7 +262,22 @@ Data组织图（以部分CreativeSystem为例）:
               }
             }
             ```
+            ```
+            descObject(map<int, content>, 10)
+            mapObject(key = 1, value = content(...))
+            mapObject(key = 2, value = content(...))
 
+            descObject(map<int, set(creative)>, 5)
+            mapObject(key = 3, descObject(set(creative), 2))
+            creative()
+            creative()
+            mapObject(key = 4, descObject(set(creative), 3))
+            creative()
+            creative()
+
+            descObject(list<integer>, 10)
+            [sharedBudgets1, sharedBudgets2 ...]
+            ```
 
         - 每个serializable的class，在序列化的时候都带上className, 便于反序列化使用reflect的时候查找组装class
           - Adv: 序列化的时候比较简单
@@ -301,22 +307,70 @@ Data组织图（以部分CreativeSystem为例）:
     - [How to recursively serialize an object using reflection?](https://stackoverflow.com/questions/2623091/how-to-recursively-serialize-an-object-using-reflection)
 - `Json`
   - 方式：整个system就是一个list of object，一行一个object
-  - write & read方法同上
+    - write & read方法类似ser
+      - M1: 每个data中指明所属class
+        ```Json
+        {
+          "fieldName": "contentMap",
+        }
+        ```
+      - M2: 在第一层的data前增加desc部分，说明该段数据所属class,类型，长度
   - Adv
     - 明文
-    - （其他方面和ser差不多）
+    - ？
   - Disadv
     - 明文，可能会被篡改? (.ser似乎也是？需要进行校验)
     - 不保留原数据格式，如long, int不分
-
-- `Protobuf`
-  - 
+  - Object -> JSON 库
+    - `Jackson`
+    - `Gson`
+    - `FastJson`
 - 不合适：
   - `Sqlite`: Data没有固定结构，不适合用表来存储，但如果不考虑一个表只有一行数据，且一个system按data的个数分表的影响，sqlite应该还是比较合适的
   - `csv`: data没有统一结构
   - `XML`: 文件大小、可读性不如Json
+  - `Protobuf`
+    - 方式：先在proto文件中定义数据格式, 一个object = 一个message
+      - write:
+        - 怎么把一个system class中的成员变量分别序列化？
+          - 对于引用其他class的object, protobuf支持nested class, 但也需要自己定义
+          - M1: 一个data一个message => .proto文件会比较零碎
+        - 怎么把多个序列化后的object写入一个文件？=> Supported
+      - read
+        - 怎么把多个object从一个文件一个一个的读出来？=> Supported
+        - 怎么把object和class挂载？=> auto
+    - Adv
+      - protobuf会自动识别数据类型和对应的class
+      - 序列化后的大小是json的十分之一，xml的二十分之一，二进制的十分之一
+    - Disadv
+      - 需要引入第三方包
+      - 不太适合按行序列化
+      - system之后每做一次改动，都需要更改相应的protobuf文件
+    - 参考资料：
+      - [Protocol Buffers](https://developers.google.com/protocol-buffers/docs/javatutorial)
+  - `thrift`
+    - 性能类似protobuf
+    - 和protobuf比的优势在提供全套RPC解决方案上，不是java-java communication
 
 
 ### Old data vs. New data
 - 按数据类型分别处理
+
+## Run
+- Restore database:
+  - Enter local sql folder 
+    - `docker cp promote-prod.sql serializer_docker-prod_1:/`
+    - `docker cp promote-prod-rpt.sql serializer_docker-prod_1:/`
+  - Load data into database (in container)
+    - `mysql -u docker -pdocker -Dpromote-prod-rpt < promote-prod-rpt.sql`
+    - `mysql -u docker -pdocker -Dpromote-prod < promote-prod.sql`
+- Start docker
+  - `docker start e3d3724111e3`
+  - `docker exec -it e3d3724111e3 /bin/bash`
+- Start mysql in container
+  - `mysql -u docker -p` docker
+
+- PlacementTarget
+
+
 
