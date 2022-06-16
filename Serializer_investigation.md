@@ -48,14 +48,12 @@
 | Depth three | --      | --           |
 
 
-| system            | with Gzip | no Gzip | 原本   |
-| ----------------- | --------- | ------- | ------ |
-| TargetValueSystem | 12Mb      | 67Mb    | 5924Kb |
-| SlotSystem        | 12Kb      | 86Kb    | 9Kb    |
-| TemplateSystem    | 67M       | 42Kb    | 9Kb    |
+| system              | with Gzip | no Gzip | 数据Gzip压缩 without 文件Gzip | 数据压缩 with Gzip | 原本     |
+| ------------------- | --------- | ------- | ----------------------------- | ------------------ | -------- |
+| TargetValueSystem   | 12M       | 67M     | 12M                           | 7.6M               | 5.924Mb  |
+| PlacementSlotSystem |           |         | 105M                          | 57M                | 79.969Mb |
 
-| system            | with Gzip | no Gzip | 原本 with Gzip | 原本 without Gzip |
-| ----------------- | --------- | ------- | -------------- | ----------------- |
-| TargetValueSystem | 1678ms    | 1577ms  | 2467ms         | 2401ms            |
-| SlotSystem        | 42ms      | 38 - 50ms    | 15ms           |     16ms              |
-| TemplateSystem    | 24ms      | 30ms    | 5ms            | 6ms               |
+| system              | with Gzip | no Gzip | 数据Gzip压缩 without 文件Gzip | 数据压缩 with Gzip | 原本 without Gzip |
+| ------------------- | --------- | ------- | ----------------------------- | ------------------ | ----------------- |
+| TargetValueSystem   | 1678ms    | 1577ms  | 2178ms                        | 2246ms             | 2467ms            |
+| PlacementSlotSystem |           |         | 45564ms                       | 37881ms            | 49310ms  47498ms  |

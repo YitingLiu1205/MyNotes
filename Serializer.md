@@ -43,7 +43,7 @@
     - `Map<Integer, Map<Long, Double>>`
     - `Map<Long, KeywordTarget>`
     - `Map<Long, List<KeywordTarget>>`
-    - `Map<Integer, List<PlacementSlot>>`
+    - `Map<Integer, List<PlacementSlot>>`（
     - `Map<Integer, Placement>`
     - `Map<Integer, Map<Integer, Double>>`
     - `Map<Integer, List<Integer>>`
