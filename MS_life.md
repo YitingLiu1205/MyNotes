@@ -59,3 +59,11 @@
 ### WK2
 - 写serialize design doc & 代码
 
+### WK3
+- 开发代码
+
+### WK4
+- 写UT
+- 修改adserver部分，改为使用新serializer
+- 思考version2
+
