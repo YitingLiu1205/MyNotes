@@ -1,8 +1,23 @@
 # Serializer Optimization Ver.2
 
 ## Commands!
-- `java -Xmx16g -jar serializer/build/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
+- `java -Xms512m -Xmx64g -jar serializer/build/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
 - `java -Xmx16g -XX:NativeMemoryTracking=detail -jar serializer/build/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
+- `java -Xmx32g -jar serializer/bu
+ild/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
+
+## Deploy
+
+### Serializer
+- [Serializer Deploy Instruction](https://spotfront.atlassian.net/wiki/spaces/EN/pages/3323527256/Serializer+Pipelines+in+ADO)
+- [File container (Staging)](https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/949ee4ba-5c35-470e-8128-7c70c8746af4/resourceGroups/staging-grf-iad-core-storage-rg/providers/Microsoft.Storage/storageAccounts/staginggrfiadcluster1/overview)
+
+### Adserver
+- [Adserver Deploy Instruction A](https://spotfront.atlassian.net/wiki/spaces/EN/pages/3176824863/Distribution+Process+of+the+New+Serializer+File#2.-PR-Build)
+- [Adserver AKS Debug](https://microsoft.sharepoint.com/teams/PromoteIQCN/_layouts/15/Doc.aspx?sourcedoc={4acfef6a-6854-41f3-be64-12211832a876}&action=edit&wd=target%28DevOps.one%7C96d19934-0d72-47f3-944c-8900c0a00b71%2FDevelopment%5C%2FDebug%20on%20AKS%7C46d3ab8f-43bb-4609-b9fd-3c02281d8aec%2F%29&wdorigin=NavigationUrl)
+- [Adserver Pipeline Instruction](https://dev.azure.com/PromoteIQ/Delivery-Hydra/_wiki/wikis/Delivery-Hydra.wiki/8/Hydra-NonProd-Pipeline)
+- [staging-grf-iad-k8s](https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/949ee4ba-5c35-470e-8128-7c70c8746af4/resourceGroups/staging-grf-iad-k8s-aks-rg/providers/Microsoft.ContainerService/managedClusters/staging-grf-iad-k8s/overview)
+
 
 ## Ver.1
 - [PR](https://github.com/spotfront/hydra/pull/1746)
@@ -44,8 +59,6 @@
           - Value = Map => Full update value map
           - Value = Set => Full update value set
           - **Value = List** => Full update value list
-          - **Value = BasicTable** => Update BasicTable
-            - Call updateData method
           - Value = Other => Full update value
       - Finalize
         - currentTable = old map value
@@ -54,8 +67,12 @@
 - Set更新逻辑
   - **Set of basic table**
     - 取出Id, 转成Map
-      - => Full update map  => `Map<id, set item>`
-      - => Delta update map => `Map<id, set item>`
+      - => Full update map  => `Map<id, SetItem>`
+        - 记录不在newSet里的key, 放入needRemove
+        - do update and add
+        - 遍历needRemove, 删除setitem
+      - => Delta update map => `Map<id, SetItem>`
+        - 
   - Set of other objects
     - => Full update (currentSet, newSet)
       - 遍历currentSet, 记录不在newSet中的key,放入needRemove
@@ -92,11 +109,8 @@
         - 遍历new list，把非non的pointer放入新list并返回
 
 - **BasicTable**
-  - Do object compare & update
-    - extends Metadata class
-      - 每个metadata 实现自己的update方法 <= Current
-      - 用反射获取每个field的value, 并compare & update
-    - 直接用 compareUtil, compare & update
+  - 用idList记录数据主键
+  - 用反射取出对应的值，并组成集合（idSet）
 
 ### T3
 

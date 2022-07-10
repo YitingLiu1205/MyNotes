@@ -1,0 +1,42 @@
+"targetDimensions":
+    [
+        {
+            "id":1022,
+            "publisherReference":"category",
+            "publisherId":10,
+            "dimensionType":"CATEGORY",
+            "active":true,
+            "hierarchical":true,
+            "score":null,
+            "maxDepth":null,
+            "targetValues":null,
+            "augmented":false
+        }
+    ],
+"productRefs":null,
+"publisherId":10,
+"publisher":{"id":10,"timezone":"America/New_York","defaultCtr":0.001,"name":"Office Depot"}
+},
+"162202202":
+    {
+        "id":162202202,
+        "defaultFormat":"JSON",
+        "defaultTemplate":
+            {
+                "id":24,
+                "name":"Via - Banner",
+                "value":
+                    "{\n  
+                        \"include_wrapper\": false,\n  
+                        \"include_house\": true,\n  
+                        \"content_fields\": 
+                            [\n    
+                                {\"field\": \"content_asset_url\", \"label\": \"asset_url\"},\n    
+                                {\"field\": \"content_clickthru\", \"label\": \"clickthru\"},\n    
+                                {\"field\": \"sponsored\", \"label\": \"sponsored\"},\n    
+                                {\"field\": \"impression_tracker\", \"label\": \"impression_tracker\"},\n    
+                                {\"field\": \"click_tracker\", \"label\": \"click_tracker\"},\n    
+                                {\"field\": \"campaign_id\", \"label\": \"campaign_id\"}\n  
+                            ]\n
+                    }",
+        "publisher":{"id":16,"timezone":"America/Sao_Paulo","defaultCtr":0.001,"name":"Via"},"publisherId":16},"minImpressions":null,"minCtr":null,"minRoi":null,"measurable":false,"enablePremiumBid":false,"depthDelta":1,"exactMatchMultiplier":null,"pricingAdjustment":1.0,"active":true,"maxPrice":null,"minPrice":null,"publisherDivId":18,"targetDimensions":[{"id":1029,"publisherReference":"category","publisherId":16,"dimensionType":"CATEGORY","active":true,"hierarchical":true,"score":null,"maxDepth":null,"targetValues":null,"augmented":false}],"productRefs":null,"publisherId":16,"publisher":{"id":16,"timezone":"America/Sao_Paulo","defaultCtr":0.001,"name":"Via"}}
