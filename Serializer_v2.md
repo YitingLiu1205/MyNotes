@@ -3,8 +3,7 @@
 ## Commands!
 - `java -Xms512m -Xmx64g -jar serializer/build/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
 - `java -Xmx16g -XX:NativeMemoryTracking=detail -jar serializer/build/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
-- `java -Xmx32g -jar serializer/bu
-ild/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
+- `java -Xmx32g -jar serializer/build/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
 
 ## Deploy
 
@@ -18,6 +17,28 @@ ild/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
 - [Adserver Pipeline Instruction](https://dev.azure.com/PromoteIQ/Delivery-Hydra/_wiki/wikis/Delivery-Hydra.wiki/8/Hydra-NonProd-Pipeline)
 - [staging-grf-iad-k8s](https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/949ee4ba-5c35-470e-8128-7c70c8746af4/resourceGroups/staging-grf-iad-k8s-aks-rg/providers/Microsoft.ContainerService/managedClusters/staging-grf-iad-k8s/overview)
 
+## Run
+
+### Run adserver
+
+#### Prepare data
+```
+kubectl config current-context
+
+kubectl config get-contexts
+
+kubectl config use-context sbox-grf-kss-oma-aks-admin
+
+kubectl exec hydra-adserver-del-stsj-0 -n hydra -- ls
+ 
+kubectl cp ghz.zip hydra-adserver-del-stsj-0:ghz.zip -n hydra -c hydra-adserver
+
+kubectl cp hydra-adserver-del-stsj-0:ghz/ping73.cap ./ping73.cap -n hydra -c hydra-adserver
+
+kubectl cp hydra-adserver-0:kss_rel.cap ./kss_rel.cap -n hydra -c hydra-adserver
+
+```
+
 
 ## Ver.1
 - [PR](https://github.com/spotfront/hydra/pull/1746)
@@ -28,8 +49,6 @@ ild/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
   - `SerializerCompareService` <= `tools/src/main/java/com/promoteiq/tools/service`
 - T2: 将BatchUpdate逻辑推广到List Array这类有顺序信息的容器上，保证原有顺序和数据一致性以及更新效率
 - T3: 梳理构建content，creative等基础数据表，构建以BasicTable, PrimaryTable为主的表内存结构
-
-### T1
 
 ### T2
 
@@ -112,5 +131,5 @@ ild/libs/local-build-serializer-0.0.1-SNAPSHOT.jar`
   - 用idList记录数据主键
   - 用反射取出对应的值，并组成集合（idSet）
 
-### T3
+
 
