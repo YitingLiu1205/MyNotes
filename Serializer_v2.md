@@ -27,15 +27,21 @@ kubectl config current-context
 
 kubectl config get-contexts
 
-kubectl config use-context sbox-grf-kss-oma-aks-admin
+kubectl config use-context staging-grf-iad-k8s-admin
 
-kubectl exec hydra-adserver-del-stsj-0 -n hydra -- ls
+kubectl exec hydra-adserver-del-stsb-0 -n hydra -- ls
  
-kubectl cp ghz.zip hydra-adserver-del-stsj-0:ghz.zip -n hydra -c hydra-adserver
+kubectl cp ser hydra-adserver-del-stsd-4:serialized -n hydra -c hydra-adserver
 
-kubectl cp hydra-adserver-del-stsj-0:ghz/ping73.cap ./ping73.cap -n hydra -c hydra-adserver
+kubectl cp run_reload_testnew.sh  hydra-adserver-del-stsd-4:/ -n hydra -c hydra-adserver
 
-kubectl cp hydra-adserver-0:kss_rel.cap ./kss_rel.cap -n hydra -c hydra-adserver
+kubectl cp reload_serializer_test.sh  hydra-adserver-del-stsd-4:/ -n hydra -c hydra-adserver
+
+// On lens
+
+cd serialized
+
+cp ser/*.* .
 
 ```
 
